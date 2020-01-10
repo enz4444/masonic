@@ -545,6 +545,8 @@ export const FreeMasonry: React.FC<FreeMasonryProps> = React.forwardRef(
     const startIndex = useRef<number>(0)
     const prevStartIndex = useRef<number | undefined>()
     const prevStopIndex = useRef<number | undefined>()
+    const tempStartIndex = useRef<number>(0)
+    const tempStopIndex = useRef<number | undefined>()
     const [itemPositioner, setItemPositioner] = useState<ItemPositioner>(
       initPositioner
     )
@@ -665,13 +667,12 @@ export const FreeMasonry: React.FC<FreeMasonryProps> = React.forwardRef(
       Math.max(0, scrollTop - overscanBy),
       scrollTop + overscanBy,
       (index, left, top) => {
-        stopIndex.current = void 0
-        if (stopIndex.current === void 0) {
-          startIndex.current = index
-          stopIndex.current = index
+        if (tempStopIndex.current === void 0) {
+          tempStartIndex.current = index
+          tempStopIndex.current = index
         } else {
-          startIndex.current = Math.min(startIndex.current, index)
-          stopIndex.current = Math.max(stopIndex.current, index)
+          tempStartIndex.current = Math.min(tempStartIndex.current, index)
+          tempStopIndex.current = Math.max(tempStopIndex.current, index)
         }
 
         const data = items[index],
@@ -720,6 +721,8 @@ export const FreeMasonry: React.FC<FreeMasonryProps> = React.forwardRef(
       let index = measuredCount
 
       for (; index < measuredCount + batchSize; index++) {
+        tempStopIndex.current = index
+
         const data = items[index],
           key = itemKey(data, index),
           observerStyle = getCachedSize(itemPositioner.columnWidth)
@@ -756,6 +759,9 @@ export const FreeMasonry: React.FC<FreeMasonryProps> = React.forwardRef(
         itemHeightEstimate
       )
     )
+
+    startIndex.current = tempStartIndex.current
+    stopIndex.current = tempStopIndex.current
 
     return React.createElement(as, {
       ref: containerRef,
